@@ -1,44 +1,124 @@
-module Main exposing (..)
+port module Main exposing (..)
 
-import Html exposing (Html, text, div, h1, img)
-import Html.Attributes exposing (src)
+import Html exposing (Html, text, div, h1, img, h2, input, ul, li)
+import Html.Attributes exposing (src, class, id)
+import Html.Events exposing (onInput, onClick)
+
+
+---- TYPES ----
+
+
+type TabsType
+    = Recent
+    | All
+
+
+type alias MutedInfo =
+    { muted : Bool }
+
+
+type alias Tab =
+    { active : Bool
+    , audible : Bool
+    , autoDiscardable : Bool
+    , discarded : Bool
+    , favIconUrl : String
+    , height : Int
+    , highlighted : Bool
+    , id : Int
+    , incognito : Bool
+    , index : Int
+    , mutedInfo : MutedInfo
+    , pinned : Bool
+    , status :
+        String
+        -- CHECK IF THIS CAN BE TYPED BETTER
+    , title : String
+    , url : String
+    , width : Int
+    , windowId : Int
+    }
+
+
+
+---- PORTS ----
+
+
+port receiveTabs : (List Tab -> msg) -> Sub msg
+
+
+port activateTab : Tab -> Cmd msg
+
+
+port getTabs : String -> Cmd msg
+
 
 
 ---- MODEL ----
 
 
 type alias Model =
-    {}
+    { tabs : List Tab, activeTab : Maybe Tab, search : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( {}, Cmd.none )
+    ( { tabs = [], activeTab = Nothing, search = "" }, Cmd.none )
 
 
 
+---- SUBSCRIPTIONS ----
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    receiveTabs ReceiveTabs
+
+
+
+-- Sub.batch
+--     [ Main.port.tabs ]
 ---- UPDATE ----
 
 
 type Msg
-    = NoOp
+    = ActivateTab Tab
+    | Change String
+    | ReceiveTabs (List Tab)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        ActivateTab tab ->
+            ( { model | activeTab = Just tab }, Cmd.none )
+
+        ReceiveTabs tabs ->
+            ( { model | tabs = tabs }, Cmd.none )
+
+        Change newSearch ->
+            ( { model | search = newSearch }, Cmd.none )
 
 
 
+-- ( model, Cmd.none )
 ---- VIEW ----
 
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ img [ src "/logo.svg" ] []
-        , h1 [] [ text "Your Elm App is working!" ]
+    div [ id "popup1", class "overlay" ]
+        [ div [ class "popup" ]
+            [ h2 [] [ text "Search for a tab" ]
+            , input [ onInput Change ] []
+            , ul [] (List.map tabItem model.tabs)
+            ]
         ]
+
+
+tabItem : Tab -> Html Msg
+tabItem tab =
+    li [] [ text tab.title ]
 
 
 
@@ -51,5 +131,5 @@ main =
         { view = view
         , init = init
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
