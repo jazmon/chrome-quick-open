@@ -3,7 +3,22 @@ import Elm from './Main.elm';
 const {
   Main
 } = Elm;
-const app = Main.embed(document.getElementById('__QUICK_OPEN_ROOT'));
+
+const ROOT_TAG = '__QUICK_OPEN_ROOT';
+
+
+if (!document.getElementById(ROOT_TAG)) {
+  const $body = document.getElementsByTagName('body')[0];
+  const $root = document.createElement('div');
+  $root.setAttribute('id', ROOT_TAG);
+  $body.appendChild($root);
+}
+
+let app;
+
+if (document.getElementById(ROOT_TAG).innerHTML === '') {
+  app = Main.embed(document.getElementById(ROOT_TAG));
+}
 
 console.log('app', app);
 
@@ -37,6 +52,8 @@ chrome.runtime.onMessage.addListener(function (msg) {
   }
 });
 app.ports.activateTab.subscribe((tab) => {
+  // If no tab, just delete the view
+  if (tab === null) return document.getElementById(ROOT_TAG).innerHTML = '';
   chrome.runtime.sendMessage({
     action: 'activate_tab',
     data: {

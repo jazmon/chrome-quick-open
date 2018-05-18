@@ -4,6 +4,7 @@ import Html exposing (Html, text, div, h1, img, h2, input, ul, li)
 import Html.Attributes exposing (src, class, id)
 import Html.Events exposing (onInput, onClick)
 import Fuzzy
+import Keyboard
 
 
 ---- TYPES ----
@@ -48,7 +49,15 @@ type alias Tab =
 port receiveTabs : (List Tab -> msg) -> Sub msg
 
 
-port activateTab : Tab -> Cmd msg
+
+-- Port to close the search with a tab or just close
+
+
+port activateTab : Maybe Tab -> Cmd msg
+
+
+
+-- port closeSearch : Maybe Tab -> Cmd msg
 
 
 port getTabs : String -> Cmd msg
@@ -73,7 +82,7 @@ init =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    receiveTabs ReceiveTabs
+    Sub.batch [ receiveTabs ReceiveTabs, Keyboard.ups KeyPress ]
 
 
 
@@ -86,6 +95,7 @@ type Msg
     = ActivateTab Tab
     | Change String
     | ReceiveTabs (List Tab)
+    | KeyPress Keyboard.KeyCode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,6 +109,19 @@ update msg model =
 
         Change newSearch ->
             ( { model | search = newSearch }, Cmd.none )
+
+        KeyPress code ->
+            case code of
+                --  ESCAPE, close the search
+                27 ->
+                    ( model, activateTab Maybe.Nothing )
+
+                -- ENTER, open the first on the list
+                13 ->
+                    ( model, activateTab <| List.head model.tabs )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -114,13 +137,12 @@ view model =
 
         tabTitles =
             List.sortBy (myMatch model.search) model.tabs
-
-        -- myMatch (List.map tabToTitle model.tabs)
     in
         div [ id "popup1", class "overlay" ]
             [ div [ class "popup" ]
                 [ h2 [] [ text "Search for a tab" ]
                 , input [ onInput Change ] []
+                  -- TODO limit these with accuracy instead of hard cap only
                 , ul [] (List.map tabItem <| List.take 6 tabTitles)
                 ]
             ]
