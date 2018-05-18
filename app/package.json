@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "@jazmon/app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -35,6 +35,7 @@
     "http-proxy-middleware": "^0.17.4",
     "minimist": "1.2.0",
     "postcss-loader": "2.1.0",
+    "prettier": "^1.12.1",
     "react-dev-utils": "^5.0.0",
     "react-error-overlay": "^4.0.0",
     "string-replace-loader": "^1.3.0",
@@ -43,5 +44,14 @@
     "url-loader": "^0.6.2",
     "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.1"
-  }
+  },
+  "description": "This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
