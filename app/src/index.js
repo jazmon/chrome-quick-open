@@ -6,13 +6,14 @@ import {
 const ROOT_TAG = '__QUICK_OPEN_ROOT';
 
 const actions = {
-  GET_ALL_TABS: 'GET_ALL_TABS',
-  GET_RECENT_TABS: 'GET_RECENT_TABS',
-  ACTIVATE_TAB: 'ACTIVATE_TAB'
+  GET_ALL_TABS: 'get_all_tabs',
+  GET_RECENT_TABS: 'get_recent_tabs',
+  ACTIVATE_TAB: 'activate_tab'
 }
 
 // If the root tag doesn't exist, create it
 if (!document.getElementById(ROOT_TAG)) {
+  console.log('QUICK OPEN: creating a root element')
   const $body = document.getElementsByTagName('body')[0];
   const $root = document.createElement('div');
 
@@ -24,13 +25,13 @@ let app;
 
 // If the root tag has no content, mount the elm app
 if (document.getElementById(ROOT_TAG).innerHTML === '') {
+  console.log('QUICK OPEN: inserting elm app')
   app = Main.embed(document.getElementById(ROOT_TAG));
+  // send a message immediately to get all tabs
+  chrome.runtime.sendMessage({
+    action: actions.GET_ALL_TABS
+  });
 }
-
-// send a message immediately to get all tabs
-chrome.runtime.sendMessage({
-  action: actions.GET_ALL_TABS
-});
 
 // Add listeners for get tab actions
 chrome.runtime.onMessage.addListener((msg) => {

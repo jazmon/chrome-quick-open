@@ -1,6 +1,6 @@
 port module Main exposing (..)
 
-import Html exposing (Html, text, div, h1, img, h2, input, ul, li)
+import Html exposing (Html, text, div, h1, img, h2, input, ul, li, span, br)
 import Html.Attributes exposing (src, class, id)
 import Html.Events exposing (onInput, onClick)
 import Fuzzy
@@ -118,7 +118,7 @@ update msg model =
 
                 -- ENTER, open the first on the list
                 13 ->
-                    ( model, activateTab <| List.head model.tabs )
+                    ( model, activateTab <| List.head <| sortTabs model.tabs model.search )
 
                 _ ->
                     ( model, Cmd.none )
@@ -129,28 +129,41 @@ update msg model =
 ---- VIEW ----
 
 
+fuzzyMatch : String -> Tab -> Int
+fuzzyMatch needle hay =
+    Fuzzy.match [] [] needle (tabToTitle (hay)) |> .score
+
+
+sortTabs : List Tab -> String -> List Tab
+sortTabs tabs search =
+    List.sortBy (fuzzyMatch search) tabs
+
+
 view : Model -> Html Msg
 view model =
     let
-        myMatch needle hay =
-            Fuzzy.match [] [] needle (tabToTitle (hay)) |> .score
-
         tabTitles =
-            List.sortBy (myMatch model.search) model.tabs
+            List.sortBy (fuzzyMatch model.search) model.tabs
     in
         div [ id "popup1", class "overlay" ]
             [ div [ class "popup" ]
                 [ h2 [] [ text "Search for a tab" ]
                 , input [ onInput Change ] []
                   -- TODO limit these with accuracy instead of hard cap only
-                , ul [] (List.map tabItem <| List.take 6 tabTitles)
+                , ul [ class "tab-list" ] (List.map tabItem <| List.take 6 tabTitles)
                 ]
             ]
 
 
 tabItem : Tab -> Html Msg
 tabItem tab =
-    li [] [ text tab.title ]
+    li [ class "tab-item" ]
+        [ div [ class "tab-item-inner" ]
+            [ img [ src tab.favIconUrl, class "tab-item-favicon" ] []
+            , span [ class "tab-item-title" ] [ text tab.title ]
+            , span [ class "tab-item-url" ] [ text tab.url ]
+            ]
+        ]
 
 
 tabToTitle : Tab -> String
