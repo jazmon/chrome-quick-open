@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Html exposing (Html, text, div, h1, img, h2, input, ul, li)
 import Html.Attributes exposing (src, class, id)
 import Html.Events exposing (onInput, onClick)
+import Fuzzy
 
 
 ---- TYPES ----
@@ -107,18 +108,32 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "popup1", class "overlay" ]
-        [ div [ class "popup" ]
-            [ h2 [] [ text "Search for a tab" ]
-            , input [ onInput Change ] []
-            , ul [] (List.map tabItem model.tabs)
+    let
+        myMatch needle hay =
+            Fuzzy.match [] [] needle (tabToTitle (hay)) |> .score
+
+        tabTitles =
+            List.sortBy (myMatch model.search) model.tabs
+
+        -- myMatch (List.map tabToTitle model.tabs)
+    in
+        div [ id "popup1", class "overlay" ]
+            [ div [ class "popup" ]
+                [ h2 [] [ text "Search for a tab" ]
+                , input [ onInput Change ] []
+                , ul [] (List.map tabItem <| List.take 6 tabTitles)
+                ]
             ]
-        ]
 
 
 tabItem : Tab -> Html Msg
 tabItem tab =
     li [] [ text tab.title ]
+
+
+tabToTitle : Tab -> String
+tabToTitle tab =
+    tab.title
 
 
 
