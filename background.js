@@ -12,7 +12,7 @@ function init() {
 
 
     chrome.tabs.insertCSS(tabId, {
-      file: 'app/build/static/css/main.f5c22ef7.css'
+      file: 'app/build/static/css/main.css'
     })
     // chrome.tabs.insertCSS(tabId, {
     //   file: 'main.css'
@@ -20,8 +20,9 @@ function init() {
     chrome.tabs.executeScript(tabId, {
       file: 'elm-import.js'
     });
+
     chrome.tabs.executeScript(tabId, {
-      file: 'app/build/static/js/main.bd506223.js'
+      file: 'app/build/static/js/main.js'
     });
   });
 }

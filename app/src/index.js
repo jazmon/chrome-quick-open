@@ -3,6 +3,6 @@ import {
   Main
 } from './Main.elm';
 
-// Main.embed(document.getElementById('root'));
+// Main.embed(document.getElementById('__QUICK_OPEN_ROOT'));
 
-window.Main = Main;
+global.Main = window.Main = Main;
