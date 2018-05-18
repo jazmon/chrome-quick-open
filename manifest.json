@@ -3,7 +3,7 @@
   "version": "1.0",
   "author": "Atte Huhtakangas",
   "description": "Quickly open a tab from your open tabs!",
-  "permissions": ["tabs", "activeTab", "declarativeContent", "storage"],
+  "permissions": ["tabs", "activeTab", "declarativeContent", "storage", "http://*/*", "https://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
