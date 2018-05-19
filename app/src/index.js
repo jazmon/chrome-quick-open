@@ -26,7 +26,9 @@ let app;
 // If the root tag has no content, mount the elm app
 if (document.getElementById(ROOT_TAG).innerHTML === '') {
   console.log('QUICK OPEN: inserting elm app')
-  app = Main.embed(document.getElementById(ROOT_TAG));
+  app = Main.embed(document.getElementById(ROOT_TAG), {
+    environment: process.env.NODE_ENV || 'production'
+  });
   // send a message immediately to get all tabs
   chrome.runtime.sendMessage({
     action: actions.GET_ALL_TABS

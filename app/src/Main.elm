@@ -56,6 +56,11 @@ type alias SiteLink =
     }
 
 
+type alias Flags =
+    { environment : String
+    }
+
+
 
 ---- PORTS ----
 
@@ -77,9 +82,16 @@ type alias Model =
     { tabs : List Tab, activeTab : Maybe Tab, search : String, selection : Int }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { tabs = generateMockTabs 6, activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        tabs =
+            if flags.environment == "development" then
+                generateMockTabs 6
+            else
+                []
+    in
+        ( { tabs = tabs, activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
 
 
 
@@ -291,9 +303,9 @@ tabItem selection ( index, tab ) =
 ---- PROGRAM ----
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { view = view
         , init = init
         , update = update
