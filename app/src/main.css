@@ -61,7 +61,11 @@ img {
   border-bottom: 1px solid #b3b4b5
 }
 
-.tab-item:first-child {
+/* .tab-item:first-child {
+  background: #b4c7ff;
+} */
+
+.tab-item-selected {
   background: #b4c7ff;
 }
 
@@ -74,6 +78,7 @@ img {
   flex-direction: row;
   flex-wrap: wrap;
 }
+
 .tab-item-favicon {
   width: 24px;
   height: 24px;
@@ -83,6 +88,7 @@ img {
 .tab-item-title {
   margin-left: 1rem;
 }
+
 .tab-item-url {
   margin-left: 1rem;
 }

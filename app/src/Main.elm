@@ -5,6 +5,8 @@ import Html.Attributes exposing (src, class, id)
 import Html.Events exposing (onInput, onClick)
 import Fuzzy
 import Keyboard
+import Debug
+import Array
 
 
 ---- TYPES ----
@@ -32,9 +34,7 @@ type alias Tab =
     , index : Int
     , mutedInfo : MutedInfo
     , pinned : Bool
-    , status :
-        String
-        -- CHECK IF THIS CAN BE TYPED BETTER
+    , status : String
     , title : String
     , url : String
     , width : Int
@@ -49,15 +49,7 @@ type alias Tab =
 port receiveTabs : (List Tab -> msg) -> Sub msg
 
 
-
--- Port to close the search with a tab or just close
-
-
 port activateTab : Maybe Tab -> Cmd msg
-
-
-
--- port closeSearch : Maybe Tab -> Cmd msg
 
 
 port getTabs : String -> Cmd msg
@@ -68,12 +60,12 @@ port getTabs : String -> Cmd msg
 
 
 type alias Model =
-    { tabs : List Tab, activeTab : Maybe Tab, search : String }
+    { tabs : List Tab, activeTab : Maybe Tab, search : String, selection : Int }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [], activeTab = Nothing, search = "" }, Cmd.none )
+    ( { tabs = [], activeTab = Nothing, search = "", selection = 0 }, Cmd.none )
 
 
 
@@ -86,8 +78,6 @@ subscriptions model =
 
 
 
--- Sub.batch
---     [ Main.port.tabs ]
 ---- UPDATE ----
 
 
@@ -111,27 +101,57 @@ update msg model =
             ( { model | search = newSearch }, Cmd.none )
 
         KeyPress code ->
-            case code of
+            case Debug.log "code" code of
                 --  ESCAPE, close the search
                 27 ->
                     ( model, activateTab Maybe.Nothing )
 
                 -- ENTER, open the first on the list
                 13 ->
-                    ( model, activateTab <| List.head <| sortTabs model.tabs model.search )
+                    let
+                        tabs =
+                            sortTabs model.tabs model.search
+
+                        tabArr =
+                            Array.fromList tabs
+
+                        smallArr =
+                            Array.slice 0 6 tabArr
+                    in
+                        ( model, activateTab <| Array.get model.selection smallArr )
+
+                -- ( model, activateTab <| List.head <| sortTabs model.tabs model.search )
+                -- CTRL
+                17 ->
+                    ( model, Cmd.none )
+
+                -- CMD
+                91 ->
+                    ( model, Cmd.none )
+
+                --  I
+                73 ->
+                    ( model, Cmd.none )
+
+                -- Arrow down
+                40 ->
+                    ( { model | selection = changeSelection (min 6 <| List.length model.tabs) model.selection Down }, Cmd.none )
+
+                -- Arrow up
+                38 ->
+                    ( { model | selection = changeSelection (min 6 <| List.length model.tabs) model.selection Up }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
 
 
--- ( model, Cmd.none )
----- VIEW ----
+---- UTILS ----
 
 
 fuzzyMatch : String -> Tab -> Int
 fuzzyMatch needle hay =
-    Fuzzy.match [] [] needle (tabToTitle (hay)) |> .score
+    Fuzzy.match [ Fuzzy.addPenalty 100 ] [] needle (tabToTitle (hay)) |> .score
 
 
 sortTabs : List Tab -> String -> List Tab
@@ -139,36 +159,101 @@ sortTabs tabs search =
     List.sortBy (fuzzyMatch search) tabs
 
 
+tabToTitle : Tab -> String
+tabToTitle tab =
+    tab.url
+
+
+accurateResult : String -> Int -> Maybe Int
+accurateResult search number =
+    Maybe.Just number
+
+
+type Direction
+    = Up
+    | Down
+
+
+changeSelection : Int -> Int -> Direction -> Int
+changeSelection maxLength selection direction =
+    case direction of
+        Up ->
+            let
+                newSelection =
+                    selection - 1
+
+                firstItem =
+                    0
+            in
+                if newSelection <= firstItem then
+                    firstItem
+                else
+                    newSelection
+
+        Down ->
+            let
+                newSelection =
+                    selection + 1
+
+                lastItem =
+                    maxLength - 1
+            in
+                if newSelection >= lastItem then
+                    lastItem
+                else
+                    newSelection
+
+
+
+---- VIEW ----
+
+
 view : Model -> Html Msg
 view model =
     let
-        tabTitles =
-            List.sortBy (fuzzyMatch model.search) model.tabs
+        tabs =
+            sortTabs model.tabs model.search
+
+        tabArr =
+            Array.fromList tabs
+
+        smallArr =
+            Array.slice 0 6 tabArr
+
+        indexTabTupleList =
+            Array.toIndexedList smallArr
+
+        -- Array.toList <| (Array.map tabItem <| (Array.slice 0 6 tabArr) <| model.selection
+        -- accurateTabs =
+        --     List.filterMap accurateResult <| (fuzzyMatch model.search) <| model.tabs
     in
         div [ id "popup1", class "overlay" ]
             [ div [ class "popup" ]
                 [ h2 [] [ text "Search for a tab" ]
                 , input [ onInput Change ] []
+                , ul [ class "tab-list" ] <| List.map (tabItem model.selection) indexTabTupleList
                   -- TODO limit these with accuracy instead of hard cap only
-                , ul [ class "tab-list" ] (List.map tabItem <| List.take 6 tabTitles)
+                  -- , ul [ class "tab-list" ] <| Array.toList (Array.indexedMap tabItem <| (Array.slice 0 6 tabArr) <| model.selection)
                 ]
             ]
 
 
-tabItem : Tab -> Html Msg
-tabItem tab =
-    li [ class "tab-item" ]
+tabItem : Int -> ( Int, Tab ) -> Html Msg
+tabItem selection ( index, tab ) =
+    li
+        [ class <|
+            "tab-item"
+                ++ if selection == index then
+                    " tab-item-selected"
+                   else
+                    ""
+        ]
         [ div [ class "tab-item-inner" ]
             [ img [ src tab.favIconUrl, class "tab-item-favicon" ] []
             , span [ class "tab-item-title" ] [ text tab.title ]
             , span [ class "tab-item-url" ] [ text tab.url ]
             ]
         ]
-
-
-tabToTitle : Tab -> String
-tabToTitle tab =
-    tab.title
 
 
 
