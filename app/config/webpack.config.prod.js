@@ -101,8 +101,10 @@ module.exports = {
               require.resolve('babel-preset-env'),
               {
                 targets: {
+                  browsers: [
+                    "last 2 Chrome versions"
+                  ],
                   // React parses on ie 9, so we should too
-                  ie: 9,
                   // We currently minify with uglify
                   // Remove after https://github.com/mishoo/UglifyJS2/issues/448
                   uglify: true
@@ -174,10 +176,7 @@ module.exports = {
                     plugins: () => [
                       autoprefixer({
                         browsers: [
-                          '>1%',
-                          'last 4 versions',
-                          'Firefox ESR',
-                          'not ie < 9'
+                          'last 2 Chrome versions',
                         ]
                       })
                     ]

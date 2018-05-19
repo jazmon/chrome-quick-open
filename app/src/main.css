@@ -52,8 +52,19 @@ img {
   cursor: default;
 } */
 
+.title {
+  margin: 0;
+  padding-bottom: 0.4rem;
+}
+
+#search-input {
+  width: 99%;
+  height: 1.5rem;
+}
+
 .tab-list {
   list-style-type: none;
+  padding: 0;
 }
 
 .tab-item {
@@ -75,8 +86,17 @@ img {
 
 .tab-item-inner {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+.tab-item-upper-row {
+  display: flex;
+  align-items: center;
+}
+
+.tab-item-lower-row {
+  display: flex;
+  padding-top: 0.3rem;
 }
 
 .tab-item-favicon {
@@ -90,14 +110,15 @@ img {
 }
 
 .tab-item-url {
-  margin-left: 1rem;
+  /* margin-left: 1rem; */
+  font-size: 0.8rem;
 }
 
 .popup {
   font-family: 'Dank Mono', 'Futurice', 'Hasklig', monospace !important;
   margin: 5rem auto;
-  padding: 2rem;
-  background: #fff;
+  padding: 1rem;
+  background: #f3f3f3;
   border: 1px solid #666;
   /* width: 300px; */
   width: 60%;

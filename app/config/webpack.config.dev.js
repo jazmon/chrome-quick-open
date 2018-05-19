@@ -53,7 +53,7 @@ module.exports = {
     // served by WebpackDevServer in development. This is the JS bundle
     // containing code from all our entry points, and the Webpack runtime.
     // filename: 'static/js/bundle.js',
-    filename: 'static/js/[name].js',
+    filename: 'static/js/bundle.js',
 
     publicPath: publicPath,
 
@@ -81,11 +81,13 @@ module.exports = {
               require.resolve('babel-preset-env'),
               {
                 targets: {
+                  browsers: ["last 2 Chrome versions"],
                   // React parses on ie 9, so we should too
-                  ie: 9,
+                  // ie: 9,
+                  // chrome: 'last 2',
                   // We currently minify with uglify
                   // Remove after https://github.com/mishoo/UglifyJS2/issues/448
-                  uglify: true
+                  uglify: false
                 },
                 // Disable polyfill transforms
                 useBuiltIns: false,
@@ -197,12 +199,12 @@ module.exports = {
   plugins: [
     new DefinePlugin(env.stringified),
 
-    // new InterpolateHtmlPlugin(env.raw),
+    new InterpolateHtmlPlugin(env.raw),
 
-    // new HtmlWebpackPlugin({
-    //   inject: true,
-    //   template: paths.appHtml
-    // }),
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: paths.appHtml
+    }),
 
     new HotModuleReplacementPlugin(),
 

@@ -61,13 +61,56 @@ port getTabs : String -> Cmd msg
 ---- MODEL ----
 
 
+type alias SiteLink =
+    { url : String
+    , favIconUrl : String
+    , title : String
+    }
+
+
+links : Array.Array SiteLink
+links =
+    Array.fromList
+        [ { url = "https://www.google.fi", favIconUrl = "https://www.google.fi/favicon.ico", title = "Google" }
+        , { url = "https://www.twitter.com", favIconUrl = "https://www.twitter.com/favicon.ico", title = "Twitter" }
+        , { url = "https://futurice.com/", favIconUrl = "https://static.flockler.com/assets/futurice/images/favicon-1e8c9440235d8573ae7a278dceeb8238ca2f9dd250cc2f586c66b56095627688.png", title = "Futurice" }
+        , { url = "https://huhtakangas.com/", favIconUrl = "https://huhtakangas.com/static/atte.11652db3.jpg", title = "Atte Huhtakangas' Home Page" }
+        , { url = "https://www.reddit.com/", favIconUrl = "https://www.reddit.com/favicon.ico", title = "reddit: the front page of the internet" }
+        , { url = "https://spiceprogram.org/", favIconUrl = "https://spiceprogram.org/assets/img/logo/chilicorn_no_text-64.png", title = "Futurice Open Source and Social Impact Program" }
+        ]
+
+
+createTab : Int -> Tab
+createTab index =
+    let
+        myLink =
+            Maybe.withDefault { url = "", favIconUrl = "", title = "" } <| Array.get index links
+    in
+        { active = False, audible = False, autoDiscardable = False, discarded = False, favIconUrl = myLink.favIconUrl, height = 100, highlighted = False, id = index, incognito = False, index = index, mutedInfo = { muted = False }, pinned = False, status = "active", title = myLink.title, url = myLink.url, width = 100, windowId = 1 }
+
+
+generateMockTabs : Int -> List Tab
+generateMockTabs amount =
+    List.range 0 5
+        |> Array.fromList
+        |> Array.map createTab
+        |> Array.toList
+
+
+mockTabs : List Tab
+mockTabs =
+    [ { active = False, audible = False, autoDiscardable = False, discarded = False, favIconUrl = "https://www.google.fi/favicon.ico", height = 100, highlighted = False, id = 0, incognito = False, index = 0, mutedInfo = { muted = False }, pinned = False, status = "active", title = "Google", url = "https://www.google.fi", width = 100, windowId = 1 }
+    , { active = False, audible = False, autoDiscardable = False, discarded = False, favIconUrl = "https://www.twitter.com/favicon.ico", height = 100, highlighted = False, id = 1, incognito = False, index = 1, mutedInfo = { muted = False }, pinned = False, status = "active", title = "Twitter", url = "https://www.twitter.com", width = 100, windowId = 1 }
+    ]
+
+
 type alias Model =
     { tabs : List Tab, activeTab : Maybe Tab, search : String, selection : Int }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [], activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
+    ( { tabs = generateMockTabs 6, activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
 
 
 send : msg -> Cmd msg
@@ -257,7 +300,7 @@ view model =
     in
         div [ id "popup1", class "overlay" ]
             [ div [ class "popup" ]
-                [ h2 [] [ text "Search for a tab" ]
+                [ h2 [ class "title" ] [ text "Search for a tab" ]
                 , input [ onInput Change, id "search-input" ] []
                 , ul [ class "tab-list" ] <| List.map (tabItem model.selection) indexTabTupleList
                   -- TODO limit these with accuracy instead of hard cap only
@@ -277,9 +320,13 @@ tabItem selection ( index, tab ) =
                     ""
         ]
         [ div [ class "tab-item-inner" ]
-            [ img [ src tab.favIconUrl, class "tab-item-favicon" ] []
-            , span [ class "tab-item-title" ] [ text tab.title ]
-            , span [ class "tab-item-url" ] [ text tab.url ]
+            [ div [ class "tab-item-upper-row" ]
+                [ img [ src tab.favIconUrl, class "tab-item-favicon" ] []
+                , span [ class "tab-item-title" ] [ text tab.title ]
+                ]
+            , div [ class "tab-item-lower-row" ]
+                [ span [ class "tab-item-url" ] [ text tab.url ]
+                ]
             ]
         ]
 
