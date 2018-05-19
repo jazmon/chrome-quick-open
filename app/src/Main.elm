@@ -126,7 +126,7 @@ update msg model =
             ( { model | tabs = tabs }, Cmd.none )
 
         Change newSearch ->
-            ( { model | search = newSearch }, Cmd.none )
+            ( { model | search = newSearch, selection = 0 }, Cmd.none )
 
         KeyPress code ->
             case Debug.log "code" code of
