@@ -15,7 +15,7 @@ img {
 } */
 
 .overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
@@ -104,7 +104,7 @@ img {
   max-width: 480px;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
   position: relative;
-  z-index: 999999;
+  z-index: 999999 !important;
   /* h2 {
     margin-top: 0;
     color: #666;

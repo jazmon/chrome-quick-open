@@ -7,6 +7,8 @@ import Fuzzy
 import Keyboard
 import Debug
 import Array
+import Task
+import Dom
 
 
 ---- TYPES ----
@@ -65,7 +67,13 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [], activeTab = Nothing, search = "", selection = 0 }, Cmd.none )
+    ( { tabs = [], activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
+
+
+send : msg -> Cmd msg
+send msg =
+    Task.succeed msg
+        |> Task.perform identity
 
 
 
@@ -83,14 +91,34 @@ subscriptions model =
 
 type Msg
     = ActivateTab Tab
+    | FocusResult (Result Dom.Error ())
+    | NoOp
     | Change String
     | ReceiveTabs (List Tab)
     | KeyPress Keyboard.KeyCode
+    | OnLoad
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        FocusResult result ->
+            -- handle success or failure here
+            case result of
+                Err (Dom.NotFound id) ->
+                    -- unable to find dom 'id'
+                    ( model, Cmd.none )
+
+                Ok () ->
+                    -- successfully focus the dom
+                    ( model, Cmd.none )
+
+        OnLoad ->
+            ( model, Cmd.none )
+
         ActivateTab tab ->
             ( { model | activeTab = Just tab }, Cmd.none )
 
@@ -230,7 +258,7 @@ view model =
         div [ id "popup1", class "overlay" ]
             [ div [ class "popup" ]
                 [ h2 [] [ text "Search for a tab" ]
-                , input [ onInput Change ] []
+                , input [ onInput Change, id "search-input" ] []
                 , ul [ class "tab-list" ] <| List.map (tabItem model.selection) indexTabTupleList
                   -- TODO limit these with accuracy instead of hard cap only
                   -- , ul [ class "tab-list" ] <| Array.toList (Array.indexedMap tabItem <| (Array.slice 0 6 tabArr) <| model.selection)
