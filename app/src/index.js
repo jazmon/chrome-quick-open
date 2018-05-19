@@ -46,9 +46,10 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 // listen for activate tab commands
 app.ports.activateTab.subscribe((tab) => {
+  document.getElementById(ROOT_TAG).innerHTML = '';
   // If no tab, just delete the view
-  if (tab === null) return document.getElementById(ROOT_TAG).innerHTML = '';
-
+  if (tab === null) return;
+  // otherwise go to the tab
   chrome.runtime.sendMessage({
     action: actions.ACTIVATE_TAB,
     data: {
