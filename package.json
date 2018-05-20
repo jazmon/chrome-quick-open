@@ -1,0 +1,18 @@
+{
+  "name": "chrome-quick-open",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:jazmon/chrome-quick-open.git",
+  "author": "Atte Huhtakangas <atte.huhtakangas@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "compress": "node ./scripts/compress.js"
+  },
+  "dependencies": {
+    "crx": "^3.2.1",
+    "shelljs": "^0.8.2"
+  },
+  "devDependencies": {
+    "prettier": "^1.12.1"
+  }
+}

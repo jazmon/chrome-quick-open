@@ -1,5 +1,5 @@
 {
-  "name": "@jazmon/app",
+  "name": "chrome-quick-open-app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -45,13 +45,13 @@
     "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.1"
   },
-  "description": "This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).",
+  "description": "The popup ui of chrome-quick-open.",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "dependencies": {},
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "Atte Huhtakangas <atte.huhtakangas@gmail.com>",
+  "license": "MIT"
 }

@@ -3,20 +3,10 @@
   "version": "1.0",
   "author": "Atte Huhtakangas",
   "description": "Quickly open a tab from your open tabs!",
-  "permissions": ["tabs", "activeTab", "declarativeContent", "storage", "http://*/*", "https://*/*"],
+  "permissions": ["tabs", "activeTab", "http://*/*", "https://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
-  },
-  "options_page": "options.html",
-  "page_action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "images/get_started16.png",
-      "32": "images/get_started32.png",
-      "48": "images/get_started48.png",
-      "128": "images/get_started128.png"
-    }
   },
   "icons": {
     "16": "images/get_started16.png",
