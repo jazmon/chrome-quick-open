@@ -5,7 +5,6 @@ import Html.Attributes exposing (src, class, id)
 import Html.Events exposing (onInput, onClick)
 import Fuzzy
 import Keyboard
-import Debug
 import Array
 import Task
 import Dom
@@ -147,7 +146,7 @@ update msg model =
             ( { model | search = newSearch, selection = 0 }, Cmd.none )
 
         KeyPress code ->
-            case Debug.log "code" code of
+            case code of
                 --  ESCAPE, close the search
                 27 ->
                     ( model, activateTab Maybe.Nothing )

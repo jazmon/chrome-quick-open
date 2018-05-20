@@ -13,7 +13,6 @@ const actions = {
 
 // If the root tag doesn't exist, create it
 if (!document.getElementById(ROOT_TAG)) {
-  console.log('QUICK OPEN: creating a root element')
   const $body = document.getElementsByTagName('body')[0];
   const $root = document.createElement('div');
 
@@ -25,7 +24,6 @@ let app;
 
 // If the root tag has no content, mount the elm app
 if (document.getElementById(ROOT_TAG).innerHTML === '') {
-  console.log('QUICK OPEN: inserting elm app')
   app = Main.embed(document.getElementById(ROOT_TAG), {
     environment: process.env.NODE_ENV || 'production'
   });
