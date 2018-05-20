@@ -38,8 +38,18 @@ if (document.getElementById(ROOT_TAG).innerHTML === '') {
 // Add listeners for get tab actions
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.action === actions.GET_ALL_TABS) {
-    app.ports.receiveTabs.send(msg.data, 'all');
+
+    const tabs = msg.data.map(tab => Object.assign({}, tab, {
+      favIconUrl: tab.favIconUrl || ''
+    }));
+
+    app.ports.receiveTabs.send(tabs, 'all');
   } else if (msg.action === actions.GET_RECENT_TABS) {
+
+    const tabs = msg.data.map(tab => Object.assign({}, tab, {
+      favIconUrl: tab.favIconUrl || ''
+    }));
+
     app.ports.receiveTabs.send(msg.data, 'recent');
   }
 });
