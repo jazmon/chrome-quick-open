@@ -1,13 +1,16 @@
 port module Main exposing (..)
 
-import Html exposing (Html, text, div, h1, img, h2, input, ul, li, span, br)
-import Html.Attributes exposing (src, class, id)
-import Html.Events exposing (onInput, onClick)
+import Html as H
+import Html.Attributes as A
+import Html.Events as E
 import Fuzzy
 import Keyboard
 import Array
 import Task
 import Dom
+import Models.Tab exposing (Tab)
+import TabItem
+import MockData
 
 
 ---- TYPES ----
@@ -18,41 +21,9 @@ type TabsType
     | All
 
 
-type alias MutedInfo =
-    { muted : Bool }
-
-
-type alias Tab =
-    { active : Bool
-    , audible : Bool
-    , autoDiscardable : Bool
-    , discarded : Bool
-    , favIconUrl : String
-    , height : Int
-    , highlighted : Bool
-    , id : Int
-    , incognito : Bool
-    , index : Int
-    , mutedInfo : MutedInfo
-    , pinned : Bool
-    , status : String
-    , title : String
-    , url : String
-    , width : Int
-    , windowId : Int
-    }
-
-
 type Direction
     = Up
     | Down
-
-
-type alias SiteLink =
-    { url : String
-    , favIconUrl : String
-    , title : String
-    }
 
 
 type alias Flags =
@@ -86,7 +57,7 @@ init flags =
     let
         tabs =
             if flags.environment == "development" then
-                generateMockTabs 6
+                MockData.generateMockTabs 6
             else
                 []
     in
@@ -166,17 +137,14 @@ update msg model =
                         ( model, activateTab <| Array.get model.selection smallArr )
 
                 -- CTRL
-                17 ->
-                    ( model, Cmd.none )
-
-                -- CMD
-                91 ->
-                    ( model, Cmd.none )
-
+                -- 17 ->
+                --     ( model, Cmd.none )
+                -- -- CMD
+                -- 91 ->
+                --     ( model, Cmd.none )
                 --  I
-                73 ->
-                    ( model, Cmd.none )
-
+                -- 73 ->
+                --     ( model, Cmd.none )
                 -- Arrow down
                 40 ->
                     ( { model | selection = changeSelection (min 6 <| List.length model.tabs) model.selection Down }, Cmd.none )
@@ -215,39 +183,62 @@ accurateResult search number =
 
 changeSelection : Int -> Int -> Direction -> Int
 changeSelection maxLength selection direction =
-    case direction of
-        Up ->
-            let
-                newSelection =
-                    selection - 1
+    let
+        change =
+            if direction == Up then
+                -1
+            else
+                1
 
-                firstItem =
-                    0
-            in
-                if newSelection <= firstItem then
-                    firstItem
-                else
-                    newSelection
+        next =
+            selection + change
 
-        Down ->
-            let
-                newSelection =
-                    selection + 1
+        limit =
+            if direction == Up then
+                0
+            else
+                maxLength - 1
 
-                lastItem =
-                    maxLength - 1
-            in
-                if newSelection >= lastItem then
-                    lastItem
-                else
-                    newSelection
-
+        over =
+            if direction == Up then
+                (<=)
+            else
+                (>=)
+    in
+        if over next limit then
+            limit
+        else
+            next
 
 
+
+-- case direction of
+--     Up ->
+--         let
+--             newSelection =
+--                 selection - 1
+--             firstItem =
+--                 0
+--         in
+--             if newSelection <= firstItem then
+--                 firstItem
+--             else
+--                 newSelection
+--     Down ->
+--         let
+--             newSelection =
+--                 selection + 1
+--             lastItem =
+--                 maxLength - 1
+--         in
+--             if newSelection >= lastItem then
+--                 lastItem
+--             else
+--                 newSelection
 ---- VIEW ----
 
 
-view : Model -> Html Msg
+view : Model -> H.Html Msg
 view model =
     let
         tabs =
@@ -266,36 +257,14 @@ view model =
         -- accurateTabs =
         --     List.filterMap accurateResult <| (fuzzyMatch model.search) <| model.tabs
     in
-        div [ id "popup1", class "overlay" ]
-            [ div [ class "popup" ]
-                [ h2 [ class "title" ] [ text "Search for a tab" ]
-                , input [ onInput Change, id "search-input" ] []
+        H.div [ A.id "popup1", A.class "overlay" ]
+            [ H.div [ A.class "popup" ]
+                [ H.h2 [ A.class "title" ] [ H.text "Search for a tab" ]
+                , H.input [ E.onInput Change, A.id "search-input" ] []
                   -- TODO limit these with accuracy instead of hard cap only
-                , ul [ class "tab-list" ] <| List.map (tabItem model.selection) indexTabTupleList
+                , H.ul [ A.class "tab-list" ] <| List.map (TabItem.view model.selection) indexTabTupleList
                 ]
             ]
-
-
-tabItem : Int -> ( Int, Tab ) -> Html Msg
-tabItem selection ( index, tab ) =
-    li
-        [ class <|
-            "tab-item"
-                ++ if selection == index then
-                    " tab-item-selected"
-                   else
-                    ""
-        ]
-        [ div [ class "tab-item-inner" ]
-            [ div [ class "tab-item-upper-row" ]
-                [ img [ src tab.favIconUrl, class "tab-item-favicon" ] []
-                , span [ class "tab-item-title" ] [ text tab.title ]
-                ]
-            , div [ class "tab-item-lower-row" ]
-                [ span [ class "tab-item-url" ] [ text tab.url ]
-                ]
-            ]
-        ]
 
 
 
@@ -304,42 +273,9 @@ tabItem selection ( index, tab ) =
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    H.programWithFlags
         { view = view
         , init = init
         , update = update
         , subscriptions = subscriptions
         }
-
-
-
----- MOCK DATA & FUNCTIONS ----
-
-
-links : Array.Array SiteLink
-links =
-    Array.fromList
-        [ { url = "https://www.google.fi", favIconUrl = "https://www.google.fi/favicon.ico", title = "Google" }
-        , { url = "https://www.twitter.com", favIconUrl = "https://www.twitter.com/favicon.ico", title = "Twitter" }
-        , { url = "https://futurice.com/", favIconUrl = "https://static.flockler.com/assets/futurice/images/favicon-1e8c9440235d8573ae7a278dceeb8238ca2f9dd250cc2f586c66b56095627688.png", title = "Futurice" }
-        , { url = "https://huhtakangas.com/", favIconUrl = "https://huhtakangas.com/static/atte.11652db3.jpg", title = "Atte Huhtakangas' Home Page" }
-        , { url = "https://www.reddit.com/", favIconUrl = "https://www.reddit.com/favicon.ico", title = "reddit: the front page of the internet" }
-        , { url = "https://spiceprogram.org/", favIconUrl = "https://spiceprogram.org/assets/img/logo/chilicorn_no_text-64.png", title = "Futurice Open Source and Social Impact Program" }
-        ]
-
-
-createTab : Int -> Tab
-createTab index =
-    let
-        myLink =
-            Maybe.withDefault { url = "", favIconUrl = "", title = "" } <| Array.get index links
-    in
-        { active = False, audible = False, autoDiscardable = False, discarded = False, favIconUrl = myLink.favIconUrl, height = 100, highlighted = False, id = index, incognito = False, index = index, mutedInfo = { muted = False }, pinned = False, status = "active", title = myLink.title, url = myLink.url, width = 100, windowId = 1 }
-
-
-generateMockTabs : Int -> List Tab
-generateMockTabs amount =
-    List.range 0 5
-        |> Array.fromList
-        |> Array.map createTab
-        |> Array.toList
