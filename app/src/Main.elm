@@ -2,7 +2,6 @@ port module Main exposing (..)
 
 import Html as H
 import Html.Attributes as A
-import Html.Events as E
 import Fuzzy
 import Keyboard
 import Array
@@ -11,6 +10,8 @@ import Dom
 import Models.Tab exposing (Tab)
 import TabItem
 import MockData
+import Search
+import List.Extra
 
 
 ---- TYPES ----
@@ -49,7 +50,11 @@ port getTabs : String -> Cmd msg
 
 
 type alias Model =
-    { tabs : List Tab, activeTab : Maybe Tab, search : String, selection : Int }
+    { tabs : List Tab
+    , activeTab : Maybe Tab
+    , search : String
+    , selection : Int
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -61,7 +66,13 @@ init flags =
             else
                 []
     in
-        ( { tabs = tabs, activeTab = Nothing, search = "", selection = 0 }, Dom.focus "search-input" |> Task.attempt FocusResult )
+        ( { tabs = tabs
+          , activeTab = Nothing
+          , search = ""
+          , selection = 0
+          }
+        , Dom.focus "search-input" |> Task.attempt FocusResult
+        )
 
 
 
@@ -136,15 +147,6 @@ update msg model =
                     in
                         ( model, activateTab <| Array.get model.selection smallArr )
 
-                -- CTRL
-                -- 17 ->
-                --     ( model, Cmd.none )
-                -- -- CMD
-                -- 91 ->
-                --     ( model, Cmd.none )
-                --  I
-                -- 73 ->
-                --     ( model, Cmd.none )
                 -- Arrow down
                 40 ->
                     ( { model | selection = changeSelection (min 6 <| List.length model.tabs) model.selection Down }, Cmd.none )
@@ -168,7 +170,29 @@ fuzzyMatch needle hay =
 
 sortTabs : List Tab -> String -> List Tab
 sortTabs tabs search =
-    List.sortBy (fuzzyMatch search) tabs
+    let
+        fuzzySorted =
+            List.sortBy (fuzzyMatch search) tabs
+
+        normalizedSearch =
+            String.toLower search
+
+        matchesInTitle =
+            List.filter (\s -> String.contains normalizedSearch <| String.toLower s.title) tabs
+
+        matchesInUrl =
+            List.filter (\s -> String.contains normalizedSearch <| String.toLower s.url) tabs
+
+        uniqueMatches =
+            List.Extra.uniqueBy (\t -> t.id) (matchesInTitle ++ matchesInUrl)
+
+        uniqMatchesLength =
+            List.length uniqueMatches
+    in
+        if uniqMatchesLength <= 6 then
+            uniqueMatches ++ (Tuple.first <| List.Extra.splitAt (6 - uniqMatchesLength) fuzzySorted)
+        else
+            uniqueMatches
 
 
 tabToTitle : Tab -> String
@@ -211,38 +235,11 @@ changeSelection maxLength selection direction =
             next
 
 
-
--- case direction of
---     Up ->
---         let
---             newSelection =
---                 selection - 1
---             firstItem =
---                 0
---         in
---             if newSelection <= firstItem then
---                 firstItem
---             else
---                 newSelection
---     Down ->
---         let
---             newSelection =
---                 selection + 1
---             lastItem =
---                 maxLength - 1
---         in
---             if newSelection >= lastItem then
---                 lastItem
---             else
---                 newSelection
----- VIEW ----
-
-
-view : Model -> H.Html Msg
-view model =
+getTabTuples : List Tab -> String -> List ( Int, Tab )
+getTabTuples origTabs search =
     let
         tabs =
-            sortTabs model.tabs model.search
+            sortTabs origTabs search
 
         tabArr =
             Array.fromList tabs
@@ -252,17 +249,27 @@ view model =
 
         indexTabTupleList =
             Array.toIndexedList smallArr
+    in
+        indexTabTupleList
 
-        -- TODO only show accurate enough results
-        -- accurateTabs =
-        --     List.filterMap accurateResult <| (fuzzyMatch model.search) <| model.tabs
+
+
+---- VIEW ----
+
+
+view : Model -> H.Html Msg
+view model =
+    let
+        tabs =
+            getTabTuples model.tabs model.search
     in
         H.div [ A.id "popup1", A.class "overlay" ]
             [ H.div [ A.class "popup" ]
                 [ H.h2 [ A.class "title" ] [ H.text "Search for a tab" ]
-                , H.input [ E.onInput Change, A.id "search-input" ] []
-                  -- TODO limit these with accuracy instead of hard cap only
-                , H.ul [ A.class "tab-list" ] <| List.map (TabItem.view model.selection) indexTabTupleList
+                , Search.view Change
+                , tabs
+                    |> List.map (TabItem.view model.selection)
+                    |> H.ul [ A.class "tab-list" ]
                 ]
             ]
 
